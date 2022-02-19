@@ -1,22 +1,23 @@
 #include <fstream>
 #include <iostream>
 #include <ioxx/csv.h>
+#include <ioxx/xyaml.h>
 
-struct entry {
-  std::string type;
-  std::unordered_map<std::string, float> distances;
+struct defaults {
+  std::string total_time;
+  int seed;
 
-  void connect(csv_row &row) {
-    row["type"] & type;
-    for (auto const &col_name : row.header.col_names()) {
-      if (col_name != "type")
-        row[col_name] & distances[col_name];
-    }
+  void connect(xyaml_node_proxy &proxy) {
+    proxy["general"]["total time"] & total_time;
+    proxy["general"]["seed"] & seed;
   }
 };
 
 int main() {
-  std::ifstream example("data/example.csv");
-  csv<entry> csv_file(example);
+  auto node = xyaml_node::from_path("data/defaults.yml");
+  auto value = node.as<defaults>();
+  xyaml_node saved = value;
+  std::cout << YAML::Dump(saved) << '\n';
+
   return 0;
 }

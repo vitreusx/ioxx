@@ -7,9 +7,9 @@ csv_header::csv_header(std::initializer_list<std::string> col_names) {
     insert(col_idx++, col_name);
 }
 
-csv_header::csv_header(const csv_row &row) {
+csv_header::csv_header(const row_proxy &proxy) {
   size_t col_idx = 0;
-  for (auto const &col_name : row.raw_columns)
+  for (auto const &col_name : proxy.values)
     insert(col_idx++, col_name);
 }
 
@@ -43,44 +43,85 @@ std::vector<std::string> const &csv_header::col_names() const {
   return idx_to_name;
 }
 
-csv_cell::csv_cell(std::string &ref, csv_access_mode mode)
-    : ref{ref}, mode{mode} {};
+csv_cell::csv_cell(raw_csv_cell const &base, row_proxy_mode mode)
+    : raw_csv_cell{base}, mode{mode} {};
 
-csv_row::csv_row(csv_header const &header, csv_access_mode mode)
-    : header{header}, mode{mode} {
-  raw_columns = std::vector<std::string>(header.size());
-}
-
-csv_row::csv_row(csv_header const &header, csv_access_mode mode,
-                 const std::string &line)
-    : header{header}, mode{mode} {
-  raw_columns = readCSVRow(line);
-}
-
-csv_cell csv_row::operator[](size_t idx) {
-  return csv_cell(raw_columns[idx], mode);
-}
-
-csv_cell csv_row::operator[](const std::string &name) {
-  return (*this)[header[name]];
-}
-
-std::ostream &operator<<(std::ostream &os, csv_row const &row) {
-  for (size_t idx = 0; idx < row.raw_columns.size(); ++idx) {
+std::ostream &operator<<(std::ostream &os, row_proxy const &row) {
+  for (size_t idx = 0; idx < row.values.size(); ++idx) {
     if (idx > 0)
       os << ',';
-    os << row.raw_columns[idx];
+    os << row.values[idx];
   }
   return os;
 }
 
-void free_schema::connect(csv_row &row) {
+void raw_csv_row::connect(row_proxy &row) {
   switch (row.mode) {
-  case csv_access_mode::READING:
-    values = row.raw_columns;
+  case row_proxy_mode::LOAD:
+    *this = static_cast<raw_csv_row &>(row);
     break;
-  case csv_access_mode::WRITING:
-    row.raw_columns = values;
+  case row_proxy_mode::SAVE:
+    static_cast<raw_csv_row &>(row) = *this;
     break;
   }
+}
+
+raw_csv_cell raw_csv_row::operator[](size_t idx) {
+  return raw_csv_cell(values[idx]);
+}
+
+raw_csv_cell raw_csv_row::operator[](size_t idx) const {
+  return raw_csv_cell(values[idx]);
+}
+
+raw_csv_cell raw_csv_row::operator[](const std::string &name) {
+  return (*this)[(*header)[name]];
+}
+
+raw_csv_cell raw_csv_row::operator[](const std::string &name) const {
+  return (*this)[(*header)[name]];
+}
+
+raw_csv_row::raw_csv_row(const csv_header *header) : header{header} {
+  if (header != nullptr)
+    values = std::vector<std::string>(header->size());
+}
+
+raw_csv_row::raw_csv_row(const csv_header *header, const std::string &line)
+    : header{header} {
+  values = readCSVRow(line);
+}
+
+raw_csv_cell::raw_csv_cell(std::string &ref) : ptr{&ref} {}
+
+raw_csv_cell::raw_csv_cell(const std::string &ref) : ptr{&ref} {}
+
+raw_csv_cell &raw_csv_cell::operator=(const raw_csv_cell &other) {
+  to_ref() = other.to_const_ref();
+  return *this;
+}
+
+raw_csv_cell &raw_csv_cell::operator=(raw_csv_cell &&other) noexcept {
+  to_ref() = std::move(other.to_ref());
+  return *this;
+}
+
+std::string &raw_csv_cell::to_ref() { return *std::get<std::string *>(ptr); }
+
+std::string const &raw_csv_cell::to_const_ref() const {
+  if (std::holds_alternative<std::string *>(ptr))
+    return *std::get<std::string *>(ptr);
+  else
+    return *std::get<std::string const *>(ptr);
+}
+
+row_proxy::row_proxy(const raw_csv_row &data, row_proxy_mode mode)
+    : raw_csv_row(data), mode{mode} {};
+
+csv_cell row_proxy::operator[](size_t idx) {
+  return csv_cell(this->raw_csv_row::operator[](idx), mode);
+}
+
+csv_cell row_proxy::operator[](std::string const &name) {
+  return csv_cell(this->raw_csv_row::operator[](name), mode);
 }

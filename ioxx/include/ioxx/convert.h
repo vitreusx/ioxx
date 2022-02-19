@@ -21,9 +21,12 @@ template <typename V, typename U> V convert(U const &x) {
     static T impl(std::string const &s);                                       \
   };
 
-PARSE(std::string);
-PARSE(float);
-PARSE(double);
-PARSE(int);
-PARSE(size_t);
-PARSE(char);
+#define APPLY_OVER_SCALARS(macro)                                              \
+  macro(std::string);                                                          \
+  macro(float);                                                                \
+  macro(double);                                                               \
+  macro(int);                                                                  \
+  macro(size_t);                                                               \
+  macro(char)
+
+APPLY_OVER_SCALARS(PARSE);
