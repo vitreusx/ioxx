@@ -74,6 +74,18 @@ void xyaml_embed::connect(xyaml_node_proxy &proxy) {
   }
 }
 
+void xyaml_proxy_conn<std::filesystem::path>::connect(xyaml_node_proxy &proxy, std::filesystem::path &path) {
+  if (proxy.loading()) {
+    std::string path_str;
+    proxy & path_str;
+    path = path_str;
+  }
+  else {
+    auto path_str = path.string();
+    proxy & path_str;
+  }
+}
+
 template <typename T>
 static void connect_scalar(xyaml_node_proxy &proxy, T &value) {
   if (proxy.loading()) {

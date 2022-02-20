@@ -1,5 +1,6 @@
 #pragma once
 #include "xyaml_def.h"
+#include "csv.h"
 
 namespace ioxx {
 
@@ -20,6 +21,25 @@ struct xyaml_embed {
   xyaml_node node;
 
   void connect(xyaml_node_proxy& proxy);
+};
+
+template <typename Row> struct xyaml_csv_node {
+  xyaml_file file_node;
+  csv<Row> csv_file;
+
+  void connect(xyaml_node_proxy &proxy) {
+    if (proxy.loading()) {
+      proxy &file_node;
+      csv_file = csv<Row>(file_node.source);
+    } else {
+      file_node.source = csv_file.save();
+      proxy &file_node;
+    }
+  }
+};
+
+template<> struct xyaml_proxy_conn<std::filesystem::path> {
+  static void connect(xyaml_node_proxy& proxy, std::filesystem::path& path);
 };
 
 #define SCALAR_PROXY(T)                                                   \

@@ -47,7 +47,7 @@ std::vector<std::string> const &csv_header::col_names() const {
 csv_cell::csv_cell(raw_csv_cell const &base, row_proxy_mode mode)
     : raw_csv_cell{base}, mode{mode} {};
 
-std::ostream &operator<<(std::ostream &os, row_proxy const &row) {
+std::ostream &ioxx::operator<<(std::ostream &os, row_proxy const &row) {
   for (size_t idx = 0; idx < row.values.size(); ++idx) {
     if (idx > 0)
       os << ',';
