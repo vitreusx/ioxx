@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <utility>
+using namespace ioxx;
 
 xyaml_node xyaml_node::from_path(const std::filesystem::path &path) {
   auto data = YAML::LoadFile(path.string());

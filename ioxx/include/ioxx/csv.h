@@ -8,6 +8,7 @@
 #include <variant>
 #include <vector>
 
+namespace ioxx {
 class raw_csv_row;
 template <typename Row = raw_csv_row> class csv;
 class row_proxy;
@@ -199,3 +200,5 @@ private:
     }
   }
 };
+
+}

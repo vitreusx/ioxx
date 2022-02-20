@@ -1,4 +1,5 @@
 #include "convert.h"
+using namespace ioxx;
 
 #define PARSE_IMPL(T) T convert_impl<T, std::string>::impl(std::string const &s)
 

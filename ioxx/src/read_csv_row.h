@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+using namespace ioxx;
 
 // https://stackoverflow.com/a/30338543
 

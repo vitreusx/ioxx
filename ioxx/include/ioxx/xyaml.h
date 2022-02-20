@@ -6,6 +6,7 @@
 #include <string>
 #include <yaml-cpp/yaml.h>
 
+namespace ioxx {
 class xyaml_node_proxy;
 template <typename T> struct xyaml_proxy_conn {
   static void connect(xyaml_node_proxy &proxy, T &value) {
@@ -106,3 +107,4 @@ struct xyaml_file {
   };
 
 APPLY_OVER_SCALARS(SCALAR_PROXY_CONN);
+}

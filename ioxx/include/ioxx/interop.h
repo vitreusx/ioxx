@@ -2,6 +2,7 @@
 #include <ioxx/csv.h>
 #include <ioxx/xyaml.h>
 
+namespace ioxx {
 template <typename Row> struct xyaml_csv_node {
   xyaml_file file_node;
   csv<Row> csv_file;
@@ -16,3 +17,5 @@ template <typename Row> struct xyaml_csv_node {
     }
   }
 };
+
+}

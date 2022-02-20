@@ -1,5 +1,6 @@
 #include "csv.h"
 #include "read_csv_row.h"
+using namespace ioxx;
 
 csv_header::csv_header(std::initializer_list<std::string> col_names) {
   size_t col_idx = 0;

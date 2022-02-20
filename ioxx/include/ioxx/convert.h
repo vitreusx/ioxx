@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 
+namespace ioxx {
 template <typename V, typename U> struct convert_impl {
   static V impl(U const &x) {
     auto repr = convert_impl<std::string, U>::impl(x);
@@ -30,3 +31,4 @@ template <typename V, typename U> V convert(U const &x) {
   macro(char)
 
 APPLY_OVER_SCALARS(PARSE);
+}
