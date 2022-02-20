@@ -32,7 +32,7 @@ size_t csv_header::operator[](std::string const &s) const {
   return name_to_idx.at(s);
 }
 
-std::ostream &operator<<(std::ostream &os, csv_header const &header) {
+std::ostream &ioxx::operator<<(std::ostream &os, csv_header const &header) {
   for (size_t idx = 0; idx < header.idx_to_name.size(); ++idx) {
     if (idx > 0)
       os << ',';
