@@ -1,30 +1,12 @@
-#include "xyaml.h"
+#include "xyaml_types.h"
 #include <fstream>
-#include <sstream>
-#include <utility>
+#include <iostream>
 using namespace ioxx;
 
-xyaml_node xyaml_node::from_path(const std::filesystem::path &path) {
-  auto data = YAML::LoadFile(path.string());
-  return xyaml_node::from_data(data, path);
+void xyaml_proxy_conn<xyaml_node>::connect(xyaml_node_proxy &proxy, xyaml_node &node) {
+  if (proxy.loading()) node = static_cast<xyaml_node&>(proxy);
+  else static_cast<xyaml_node&>(proxy) = node;
 }
-
-xyaml_node
-xyaml_node::from_data(const YAML::Node &node,
-                      std::optional<std::filesystem::path> location) {
-  return xyaml_node(node, std::move(location));
-}
-
-xyaml_node::xyaml_node(const YAML::Node &node,
-                       std::optional<std::filesystem::path> location)
-    : YAML::Node(node), location(std::move(location)) {}
-
-xyaml_node_proxy::xyaml_node_proxy(const xyaml_node &data, node_proxy_mode mode)
-    : xyaml_node(data), mode{mode} {}
-
-bool xyaml_node_proxy::loading() const {
-  return mode == node_proxy_mode::LOAD;
-};
 
 void xyaml_file::connect(xyaml_node_proxy &proxy) {
   if (proxy.loading()) {
@@ -37,8 +19,8 @@ void xyaml_file::connect(xyaml_node_proxy &proxy) {
         relative_to = proxy["relative-to"].as<std::string>();
 
       std::filesystem::path full_path;
-      if (relative_to.has_value() && relative_to.value() == "file")
-        full_path = proxy.location.value_or("") / path.value();
+      if (!relative_to.has_value() || relative_to.value() == "file")
+        full_path = proxy.location->parent_path() / path.value();
       else
         full_path = path.value();
 
@@ -46,6 +28,7 @@ void xyaml_file::connect(xyaml_node_proxy &proxy) {
       std::stringstream ss {};
       ss << file.rdbuf();
       source = ss.str();
+      std::cout << source << '\n';
     }
   } else {
     if (path.has_value()) {
@@ -59,6 +42,7 @@ void xyaml_file::connect(xyaml_node_proxy &proxy) {
       else
         full_path = path.value();
 
+      std::filesystem::create_directories(full_path.parent_path());
       std::ofstream file(full_path);
       file << source;
     } else {
@@ -66,6 +50,32 @@ void xyaml_file::connect(xyaml_node_proxy &proxy) {
       proxy.is_file = true;
     }
   }
+}
+
+void xyaml_embed::connect(xyaml_node_proxy &proxy) {
+  if (proxy.loading()) {
+    if (proxy.IsScalar() || proxy["path"]) {
+      file = xyaml_file();
+      proxy & file.value();
+      node = xyaml_node::from_data(YAML::Load(file->source), proxy.location);
+    }
+    else {
+      node = static_cast<xyaml_node&>(proxy);
+    }
+  }
+  else {
+    if (file.has_value()) {
+      file->source = YAML::Dump(node);
+      proxy & file.value();
+    }
+    else {
+      proxy & node;
+    }
+  }
+}
+
+xyaml_node_proxy xyaml_embed::sub_proxy(xyaml_node_proxy const& super_proxy) {
+  return xyaml_node_proxy(node, super_proxy.mode);
 }
 
 template <typename T>
@@ -78,9 +88,14 @@ static void connect_scalar(xyaml_node_proxy &proxy, T &value) {
   }
 }
 
-#define SCALAR_PROXY_CONN_IMPL(T)                                              \
+#define SCALAR_PROXY_IMPL(T)                                              \
   void xyaml_proxy_conn<T>::connect(xyaml_node_proxy &proxy, T &value) {       \
     connect_scalar<T>(proxy, value);                                           \
   }
 
-APPLY_OVER_SCALARS(SCALAR_PROXY_CONN_IMPL);
+SCALAR_PROXY_IMPL(std::string);
+SCALAR_PROXY_IMPL(int);
+SCALAR_PROXY_IMPL(double);
+SCALAR_PROXY_IMPL(float);
+SCALAR_PROXY_IMPL(char);
+SCALAR_PROXY_IMPL(size_t);

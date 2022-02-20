@@ -1,6 +1,6 @@
 #pragma once
 #include <ioxx/csv.h>
-#include <ioxx/xyaml.h>
+#include <ioxx/xyaml_def.h>
 
 namespace ioxx {
 template <typename Row> struct xyaml_csv_node {
