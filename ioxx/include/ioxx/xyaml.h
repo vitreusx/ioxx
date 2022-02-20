@@ -1,6 +1,7 @@
 #pragma once
 #include <filesystem>
 #include <ioxx/convert.h>
+#include <memory>
 #include <optional>
 #include <string>
 #include <yaml-cpp/yaml.h>
@@ -32,6 +33,9 @@ public:
   template <typename T> xyaml_node &operator=(T const &value);
 
   std::optional<std::filesystem::path> location;
+  bool is_file = false;
+
+  friend YAML::Emitter &operator<<(YAML::Emitter &out, xyaml_node const &node);
 
 private:
   explicit xyaml_node(const YAML::Node &node,
@@ -54,7 +58,13 @@ public:
     return *this;
   }
 
+  template <typename T> xyaml_node_proxy &operator=(T const &value) {
+    this->xyaml_node::operator=(value);
+    return *this;
+  }
+
   node_proxy_mode mode;
+  bool loading() const;
 };
 
 template <typename T> T xyaml_node::as() const {
@@ -72,6 +82,23 @@ template <typename T> xyaml_node &xyaml_node::operator=(const T &value) {
   xyaml_proxy_conn<T>::connect(proxy, const_cast<T &>(value));
   return *this;
 }
+
+YAML::Emitter &operator<<(YAML::Emitter &out, const xyaml_node &node) {
+  if (node.is_file) {
+    out << YAML::EMITTER_MANIP::Literal << node.as<std::string>();
+  } else {
+    out << static_cast<YAML::Node const &>(node);
+  }
+  return out;
+}
+
+struct xyaml_file {
+  std::string source;
+  std::optional<std::string> relative_to;
+  std::optional<std::filesystem::path> path;
+
+  void connect(xyaml_node_proxy &proxy);
+};
 
 #define SCALAR_PROXY_CONN(T)                                                   \
   template <> struct xyaml_proxy_conn<T> {                                     \
