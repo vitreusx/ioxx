@@ -23,6 +23,7 @@ template <typename T> struct xyaml_proxy_conn {
 class xyaml_node : public YAML::Node {
 public:
   xyaml_node() = default;
+  xyaml_node(YAML::Node const& node);
   xyaml_node(xyaml_node const &other) = default;
 
   static xyaml_node from_path(std::filesystem::path const &path);
@@ -56,6 +57,7 @@ enum class node_proxy_mode { LOAD, SAVE };
 
 class xyaml_node_proxy : public xyaml_node {
 public:
+  xyaml_node_proxy() = default;
   explicit xyaml_node_proxy(xyaml_node const &data, node_proxy_mode mode);
 
   template <typename Key> xyaml_node_proxy operator[](Key key) {

@@ -74,10 +74,6 @@ void xyaml_embed::connect(xyaml_node_proxy &proxy) {
   }
 }
 
-xyaml_node_proxy xyaml_embed::sub_proxy(xyaml_node_proxy const& super_proxy) {
-  return xyaml_node_proxy(node, super_proxy.mode);
-}
-
 template <typename T>
 static void connect_scalar(xyaml_node_proxy &proxy, T &value) {
   if (proxy.loading()) {

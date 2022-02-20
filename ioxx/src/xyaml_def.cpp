@@ -27,7 +27,7 @@ bool xyaml_node_proxy::loading() const {
 };
 
 xyaml_node &xyaml_node::operator=(const xyaml_node &other) {
-  this->YAML::Node::operator=(static_cast<YAML::Node const&>(other));
+  this->YAML::Node::operator=(static_cast<YAML::Node const &>(other));
   location = other.location;
   is_file = other.is_file;
   return *this;
@@ -41,3 +41,6 @@ YAML::Emitter &operator<<(YAML::Emitter &out, const xyaml_node &node) {
   }
   return out;
 }
+
+xyaml_node::xyaml_node(const YAML::Node &node)
+    : YAML::Node(node), location{std::nullopt} {};

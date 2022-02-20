@@ -19,8 +19,6 @@ struct xyaml_embed {
   std::optional<xyaml_file> file;
   xyaml_node node;
 
-  xyaml_node_proxy sub_proxy(xyaml_node_proxy const& super_proxy);
-
   void connect(xyaml_node_proxy& proxy);
 };
 
