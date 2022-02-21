@@ -31,7 +31,12 @@ void xyaml_file::connect(xyaml_proxy &proxy) {
   } else {
     if (path.has_value()) {
       proxy["__path"] = path.value().string();
-      auto full_path = proxy.location.value_or("") / path.value();
+
+      std::filesystem::path full_path;
+      if (proxy.location.has_value())
+        full_path /= proxy.location.value().parent_path();
+      full_path /= path.value();
+
       std::filesystem::create_directories(full_path.parent_path());
       std::ofstream file(full_path);
       file << source;
@@ -53,9 +58,16 @@ void xyaml_embedded::connect(xyaml_proxy &proxy) {
     auto node_file = xyaml_file();
     if (proxy & node_file) {
       file = node_file;
-      auto path = proxy.location.value_or("") / node_file.path.value_or("");
+
+      std::filesystem::path path;
+      if (proxy.location.has_value())
+        path /= proxy.location.value().parent_path();
+      if (node_file.path.has_value())
+        path /= node_file.path.value();
+      auto opt_path = path.empty() ? std::nullopt : std::make_optional(path);
+
       auto data = YAML::Load(node_file.source);
-      node = xyaml_node::from_data(data, path);
+      node = xyaml_node::from_data(data, opt_path);
     } else {
       node = static_cast<xyaml_node &>(proxy);
     }

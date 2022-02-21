@@ -1,6 +1,7 @@
 #pragma once
 #include "csv.h"
 #include "xyaml_def.h"
+#include <optional>
 
 namespace ioxx {
 
@@ -58,6 +59,22 @@ template <typename Row> struct xyaml_connection<csv<Row>> {
 
 template <> struct xyaml_connection<std::filesystem::path> {
   void operator()(xyaml_proxy &proxy, std::filesystem::path &path) const;
+};
+
+template<typename T> struct xyaml_connection<std::optional<T>> {
+  void operator()(xyaml_proxy& proxy, std::optional<T>& opt) const {
+    if (proxy.loading()) {
+      if (proxy) {
+        T value;
+        proxy & value;
+        opt = value;
+      }
+    }
+    else {
+      if (opt.has_value())
+        proxy & opt.value();
+    }
+  }
 };
 
 struct xyaml_import {
