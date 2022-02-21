@@ -13,6 +13,12 @@ class raw_csv_row;
 template <typename Row = raw_csv_row> class csv;
 class row_proxy;
 
+template <typename T> struct csv_connection {
+  bool operator()(row_proxy &proxy, T &value) const {
+    return value.connect(proxy);
+  }
+};
+
 class csv_header {
 public:
   csv_header() = default;
@@ -63,6 +69,7 @@ private:
 
 class raw_csv_row {
 public:
+  raw_csv_row() = default;
   explicit raw_csv_row(csv_header const *header);
   explicit raw_csv_row(csv_header const *header, std::string const &line);
 
@@ -74,28 +81,26 @@ public:
   csv_header const *header;
   std::vector<std::string> values;
 
-private:
-  friend class csv<raw_csv_row>;
-  void connect(row_proxy &row);
+  bool connect(row_proxy &row);
 };
 
 enum class row_proxy_mode { LOAD, SAVE };
 
-class csv_cell : public raw_csv_cell {
+class cell_proxy : public raw_csv_cell {
 public:
-  explicit csv_cell(raw_csv_cell const &base, row_proxy_mode mode);
+  explicit cell_proxy(raw_csv_cell const &base, row_proxy_mode mode);
 
-  template <typename T> csv_cell &operator<<(T const &value) {
+  template <typename T> cell_proxy &operator<<(T const &value) {
     this->raw_csv_cell::operator=(value);
     return *this;
   }
 
-  template <typename T> csv_cell &operator>>(T &value) {
+  template <typename T> cell_proxy &operator>>(T &value) {
     value = this->as<T>();
     return *this;
   }
 
-  template <typename T> csv_cell &operator&(T &value) {
+  template <typename T> cell_proxy &operator&(T &value) {
     switch (mode) {
     case row_proxy_mode::LOAD:
       return (*this >> value);
@@ -112,8 +117,8 @@ class row_proxy : public raw_csv_row {
 public:
   row_proxy(raw_csv_row const &data, row_proxy_mode mode);
 
-  csv_cell operator[](size_t idx);
-  csv_cell operator[](std::string const &name);
+  cell_proxy operator[](size_t idx);
+  cell_proxy operator[](std::string const &name);
 
   friend std::ostream &operator<<(std::ostream &os, row_proxy const &row);
 
@@ -124,7 +129,7 @@ private:
   friend class csv_header;
 };
 
-template <typename Schema> class csv {
+template <typename Row> class csv {
 public:
   csv() = default;
 
@@ -156,7 +161,7 @@ public:
 
     for (auto const &schema : rows) {
       row_proxy row(raw_csv_row(header_ptr()), row_proxy_mode::SAVE);
-      const_cast<Schema &>(schema).connect(row);
+      csv_connection<Row>()(row, const_cast<Row &>(schema));
 
       if (!first)
         os << '\n';
@@ -168,10 +173,14 @@ public:
   }
 
   std::optional<csv_header> header;
-  std::vector<Schema> rows;
+  std::vector<Row> rows;
 
-  friend std::ostream &operator<<(std::ostream &os,
-                                  csv<Schema> const &csv_file) {
+  friend std::istream &operator>>(std::istream &is, csv<Row> const &csv_file) {
+    csv_file.load(is, true);
+    return is;
+  }
+
+  friend std::ostream &operator<<(std::ostream &os, csv<Row> const &csv_file) {
     csv_file.save(os, true);
     return os;
   }
@@ -188,17 +197,17 @@ private:
     rows.clear();
     for (std::string line; std::getline(is, line);) {
       auto row_data = raw_csv_row(header_ptr(), line);
-      auto row = row_proxy(row_data, row_proxy_mode::LOAD);
+      auto proxy = row_proxy(row_data, row_proxy_mode::LOAD);
 
       if (load_header) {
-        header = csv_header(row);
+        header = csv_header(proxy);
         load_header = false;
       } else {
-        auto &schema = rows.emplace_back();
-        schema.connect(row);
+        auto &row = rows.emplace_back();
+        csv_connection<Row>()(proxy, row);
       }
     }
   }
 };
 
-}
+} // namespace ioxx

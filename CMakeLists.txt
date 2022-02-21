@@ -18,3 +18,5 @@ add_custom_command(
     POST_BUILD
     COMMAND objdump -drlwC -Mintel main >main.s
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+file(COPY data DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")

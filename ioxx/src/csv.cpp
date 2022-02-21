@@ -44,7 +44,7 @@ std::vector<std::string> const &csv_header::col_names() const {
   return idx_to_name;
 }
 
-csv_cell::csv_cell(raw_csv_cell const &base, row_proxy_mode mode)
+cell_proxy::cell_proxy(raw_csv_cell const &base, row_proxy_mode mode)
     : raw_csv_cell{base}, mode{mode} {};
 
 std::ostream &ioxx::operator<<(std::ostream &os, row_proxy const &row) {
@@ -56,15 +56,16 @@ std::ostream &ioxx::operator<<(std::ostream &os, row_proxy const &row) {
   return os;
 }
 
-void raw_csv_row::connect(row_proxy &row) {
-  switch (row.mode) {
+bool raw_csv_row::connect(row_proxy &proxy) {
+  switch (proxy.mode) {
   case row_proxy_mode::LOAD:
-    *this = static_cast<raw_csv_row &>(row);
+    *this = static_cast<raw_csv_row &>(proxy);
     break;
   case row_proxy_mode::SAVE:
-    static_cast<raw_csv_row &>(row) = *this;
+    static_cast<raw_csv_row &>(proxy) = *this;
     break;
   }
+  return true;
 }
 
 raw_csv_cell raw_csv_row::operator[](size_t idx) {
@@ -119,10 +120,10 @@ std::string const &raw_csv_cell::to_const_ref() const {
 row_proxy::row_proxy(const raw_csv_row &data, row_proxy_mode mode)
     : raw_csv_row(data), mode{mode} {};
 
-csv_cell row_proxy::operator[](size_t idx) {
-  return csv_cell(this->raw_csv_row::operator[](idx), mode);
+cell_proxy row_proxy::operator[](size_t idx) {
+  return cell_proxy(this->raw_csv_row::operator[](idx), mode);
 }
 
-csv_cell row_proxy::operator[](std::string const &name) {
-  return csv_cell(this->raw_csv_row::operator[](name), mode);
+cell_proxy row_proxy::operator[](std::string const &name) {
+  return cell_proxy(this->raw_csv_row::operator[](name), mode);
 }

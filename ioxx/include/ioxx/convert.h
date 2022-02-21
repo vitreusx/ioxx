@@ -4,18 +4,18 @@
 
 namespace ioxx {
 template <typename V, typename U> struct convert_impl {
-  static V impl(U const &x) {
-    auto repr = convert_impl<std::string, U>::impl(x);
-    return convert_impl<V, std::string>::impl(repr);
+  V operator()(U const &x) const {
+    auto repr = convert_impl<std::string, U>()(x);
+    return convert_impl<V, std::string>()(repr);
   }
 };
 
 template<> struct convert_impl<std::string, std::string> {
-  static std::string impl(std::string const& s);
+  std::string operator()(std::string const& s) const;
 };
 
 template <typename U> struct convert_impl<std::string, U> {
-  static std::string impl(U const &x) {
+  std::string operator()(U const &x) const {
     std::stringstream ss;
     ss << x;
     return ss.str();
@@ -23,7 +23,7 @@ template <typename U> struct convert_impl<std::string, U> {
 };
 
 template <typename V> struct convert_impl<V, std::string> {
-  static V impl(std::string const &repr) {
+  V operator()(std::string const &repr) const {
     std::stringstream ss;
     ss << repr;
     V value;
@@ -33,6 +33,6 @@ template <typename V> struct convert_impl<V, std::string> {
 };
 
 template <typename V, typename U> V convert(U const &x) {
-  return convert_impl<V, U>::impl(x);
+  return convert_impl<V, U>()(x);
 }
 }; // namespace ioxx

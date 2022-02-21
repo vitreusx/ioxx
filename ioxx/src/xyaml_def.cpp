@@ -19,12 +19,19 @@ xyaml_node::xyaml_node(const YAML::Node &node,
                        std::optional<std::filesystem::path> location)
     : YAML::Node(node), location(std::move(location)) {}
 
-xyaml_node_proxy::xyaml_node_proxy(const xyaml_node &data, node_proxy_mode mode)
+xyaml_proxy::xyaml_proxy(const xyaml_node &data, node_proxy_mode mode)
     : xyaml_node(data), mode{mode} {}
 
-bool xyaml_node_proxy::loading() const {
+bool xyaml_proxy::loading() const {
   return mode == node_proxy_mode::LOAD;
 };
+
+bool xyaml_proxy::saving() const {
+  return mode == node_proxy_mode::SAVE;
+}
+xyaml_proxy xyaml_proxy::operator()(const xyaml_node &node) const {
+  return xyaml_proxy(node, mode);
+}
 
 xyaml_node &xyaml_node::operator=(const xyaml_node &other) {
   this->YAML::Node::operator=(static_cast<YAML::Node const &>(other));
