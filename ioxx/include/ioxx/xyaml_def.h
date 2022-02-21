@@ -56,8 +56,9 @@ public:
     return xyaml_proxy(node, mode);
   }
 
-  template <typename T> bool operator&(T &value) {
-    return xyaml_connection<T>()(*this, value);
+  template <typename T> xyaml_proxy &operator&(T &value) {
+    xyaml_connection<T>()(*this, value);
+    return *this;
   }
 
   template <typename T> xyaml_proxy &operator=(T const &value) {
@@ -65,7 +66,7 @@ public:
     return *this;
   }
 
-  bool connect(xyaml_proxy &proxy) const;
+  void connect(xyaml_proxy &proxy) const;
   xyaml_proxy operator()(xyaml_node const &node) const;
 
   node_proxy_mode mode;
@@ -94,18 +95,17 @@ using xyaml_connect_t =
     decltype(std::declval<T &>().connect(std::declval<xyaml_proxy &>()));
 
 template <typename T> struct xyaml_connection {
-  bool operator()(xyaml_proxy &proxy, T &value) const {
+  void operator()(xyaml_proxy &proxy, T &value) const {
     using namespace std::experimental;
-    
-    if constexpr (is_detected_exact_v<bool, xyaml_connect_t, T>) {
-      return value.connect(proxy);
+
+    if constexpr (is_detected_exact_v<void, xyaml_connect_t, T>) {
+      value.connect(proxy);
     } else {
       if (proxy.loading()) {
         value = proxy.YAML::Node::as<T>();
       } else {
         proxy.YAML::Node::operator=(value);
       }
-      return true;
     }
   }
 };

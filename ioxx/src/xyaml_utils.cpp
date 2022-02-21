@@ -13,11 +13,10 @@ xyaml_file::xyaml_file(const std::filesystem::path &path) {
   source = ss.str();
 }
 
-bool xyaml_file::connect(xyaml_proxy &proxy) {
+void xyaml_file::connect(xyaml_proxy &proxy) {
   if (proxy.loading()) {
     if (proxy.IsScalar()) {
       source = proxy.as<std::string>();
-      return true;
     } else if (proxy["__path"]) {
       path = std::filesystem::path(proxy["__path"].as<std::string>());
       auto full_path = proxy.location->parent_path() / path.value();
@@ -26,10 +25,8 @@ bool xyaml_file::connect(xyaml_proxy &proxy) {
       std::stringstream ss{};
       ss << file.rdbuf();
       source = ss.str();
-
-      return true;
     } else {
-      return false;
+      throw;
     }
   } else {
     if (path.has_value()) {
@@ -42,7 +39,6 @@ bool xyaml_file::connect(xyaml_proxy &proxy) {
       proxy = source;
       proxy.is_file = true;
     }
-    return true;
   }
 }
 
@@ -52,7 +48,7 @@ xyaml_embedded::xyaml_embedded(const std::filesystem::path &path) {
   node = xyaml_node::from_data(data, path);
 }
 
-bool xyaml_embedded::connect(xyaml_proxy &proxy) {
+void xyaml_embedded::connect(xyaml_proxy &proxy) {
   if (proxy.loading()) {
     auto node_file = xyaml_file();
     if (proxy & node_file) {
@@ -71,25 +67,21 @@ bool xyaml_embedded::connect(xyaml_proxy &proxy) {
       static_cast<xyaml_node &>(proxy) = node;
     }
   }
-  return true;
 }
 
-bool xyaml_connection<xyaml_node>::operator()(xyaml_proxy &proxy,
+void xyaml_connection<xyaml_node>::operator()(xyaml_proxy &proxy,
                                               xyaml_node &node) const {
   xyaml_embedded embedded;
   if (proxy.saving())
     embedded.node = node;
 
-  if (proxy & embedded) {
-    if (proxy.loading())
-      node = embedded.node;
-    return true;
-  } else {
-    return false;
-  }
+  proxy &embedded;
+
+  if (proxy.loading())
+    node = embedded.node;
 }
 
-bool xyaml_connection<std::filesystem::path>::operator()(
+void xyaml_connection<std::filesystem::path>::operator()(
     xyaml_proxy &proxy, std::filesystem::path &path) const {
   if (proxy.loading()) {
     std::string path_str;
@@ -99,31 +91,27 @@ bool xyaml_connection<std::filesystem::path>::operator()(
     auto path_str = path.string();
     proxy &path_str;
   }
-  return true;
 }
 
-bool xyaml_import::connect(xyaml_proxy &proxy) {
-  if (!proxy.loading())
-    return true;
+void xyaml_import::connect(xyaml_proxy &proxy) {
+  if (proxy.loading()) {
+    if (proxy["__import"]) {
+      auto paths = proxy["__import"].as<std::vector<std::string>>();
+      imports = {};
+      for (auto const &path_str : paths) {
+        imports.emplace_back(path_str);
+      }
 
-  if (proxy["__import"]) {
-    auto paths = proxy["__import"].as<std::vector<std::string>>();
-    imports = {};
-    for (auto const &path_str : paths) {
-      imports.emplace_back(path_str);
+      overrides = xyaml_node::from_data(YAML::Node(), proxy.location);
+      if (proxy["overrides"])
+        proxy["overrides"] & overrides;
+
+      merged = xyaml_node::from_data(YAML::Node(), proxy.location);
+      for (auto const &import : imports)
+        merged = merge_yaml(merged, import.node);
+      merged = merge_yaml(merged, overrides);
+    } else {
+      proxy &merged;
     }
-
-    overrides = xyaml_node::from_data(YAML::Node(), proxy.location);
-    if (proxy["overrides"])
-      proxy["overrides"] & overrides;
-
-    merged = xyaml_node::from_data(YAML::Node(), proxy.location);
-    for (auto const &import : imports)
-      merged = merge_yaml(merged, import.node);
-    merged = merge_yaml(merged, overrides);
-
-    return true;
-  } else {
-    return (proxy & merged);
   }
 }

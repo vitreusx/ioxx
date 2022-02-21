@@ -14,9 +14,7 @@ template <typename Row = raw_csv_row> class csv;
 class row_proxy;
 
 template <typename T> struct csv_connection {
-  bool operator()(row_proxy &proxy, T &value) const {
-    return value.connect(proxy);
-  }
+  void operator()(row_proxy &proxy, T &value) const { value.connect(proxy); }
 };
 
 class csv_header {
@@ -81,7 +79,7 @@ public:
   csv_header const *header;
   std::vector<std::string> values;
 
-  bool connect(row_proxy &row);
+  void connect(row_proxy &row);
 };
 
 enum class row_proxy_mode { LOAD, SAVE };

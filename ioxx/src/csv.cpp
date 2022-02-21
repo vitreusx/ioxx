@@ -56,7 +56,7 @@ std::ostream &ioxx::operator<<(std::ostream &os, row_proxy const &row) {
   return os;
 }
 
-bool raw_csv_row::connect(row_proxy &proxy) {
+void raw_csv_row::connect(row_proxy &proxy) {
   switch (proxy.mode) {
   case row_proxy_mode::LOAD:
     *this = static_cast<raw_csv_row &>(proxy);
@@ -65,7 +65,6 @@ bool raw_csv_row::connect(row_proxy &proxy) {
     static_cast<raw_csv_row &>(proxy) = *this;
     break;
   }
-  return true;
 }
 
 raw_csv_cell raw_csv_row::operator[](size_t idx) {
