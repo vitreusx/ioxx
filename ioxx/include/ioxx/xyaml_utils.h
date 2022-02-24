@@ -61,26 +61,18 @@ template <> struct xyaml_connection<std::filesystem::path> {
   void operator()(xyaml_proxy &proxy, std::filesystem::path &path) const;
 };
 
-template<typename T> struct xyaml_connection<std::optional<T>> {
-  void operator()(xyaml_proxy& proxy, std::optional<T>& opt) const {
+template <typename T> struct xyaml_connection<std::optional<T>> {
+  void operator()(xyaml_proxy &proxy, std::optional<T> &opt) const {
     if (proxy.loading()) {
       if (proxy) {
         T value;
-        proxy & value;
+        proxy &value;
         opt = value;
       }
-    }
-    else {
+    } else {
       if (opt.has_value())
-        proxy & opt.value();
+        proxy &opt.value();
     }
   }
-};
-
-struct xyaml_import {
-  xyaml_node merged, overrides;
-  std::vector<xyaml_embedded> imports;
-
-  void connect(xyaml_proxy &proxy);
 };
 } // namespace ioxx

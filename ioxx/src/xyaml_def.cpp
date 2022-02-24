@@ -22,13 +22,9 @@ xyaml_node::xyaml_node(const YAML::Node &node,
 xyaml_proxy::xyaml_proxy(const xyaml_node &data, node_proxy_mode mode)
     : xyaml_node(data), mode{mode} {}
 
-bool xyaml_proxy::loading() const {
-  return mode == node_proxy_mode::LOAD;
-};
+bool xyaml_proxy::loading() const { return mode == node_proxy_mode::LOAD; };
 
-bool xyaml_proxy::saving() const {
-  return mode == node_proxy_mode::SAVE;
-}
+bool xyaml_proxy::saving() const { return mode == node_proxy_mode::SAVE; }
 xyaml_proxy xyaml_proxy::operator()(const xyaml_node &node) const {
   return xyaml_proxy(node, mode);
 }
@@ -51,3 +47,14 @@ YAML::Emitter &operator<<(YAML::Emitter &out, const xyaml_node &node) {
 
 xyaml_node::xyaml_node(const YAML::Node &node)
     : YAML::Node(node), location{std::nullopt} {};
+
+xyaml_node xyaml_node::operator[](const std::string &key) const {
+  if (portals.find(key) != portals.end())
+    return *portals.at(key);
+  else
+    return xyaml_node(this->YAML::Node::operator[](key), location);
+}
+
+xyaml_node xyaml_node::operator[](int key) const {
+  return this->operator[](std::to_string(key));
+}

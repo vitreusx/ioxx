@@ -104,26 +104,3 @@ void xyaml_connection<std::filesystem::path>::operator()(
     proxy &path_str;
   }
 }
-
-void xyaml_import::connect(xyaml_proxy &proxy) {
-  if (proxy.loading()) {
-    if (proxy["__import"]) {
-      auto paths = proxy["__import"].as<std::vector<std::string>>();
-      imports = {};
-      for (auto const &path_str : paths) {
-        imports.emplace_back(path_str);
-      }
-
-      overrides = xyaml_node::from_data(YAML::Node(), proxy.location);
-      if (proxy["overrides"])
-        proxy["overrides"] & overrides;
-
-      merged = xyaml_node::from_data(YAML::Node(), proxy.location);
-      for (auto const &import : imports)
-        merged = merge_yaml(merged, import.node);
-      merged = merge_yaml(merged, overrides);
-    } else {
-      proxy &merged;
-    }
-  }
-}
