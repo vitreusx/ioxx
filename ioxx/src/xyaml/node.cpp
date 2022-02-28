@@ -2,7 +2,7 @@
 #include <fstream>
 using namespace ioxx::xyaml;
 
-YAML::Emitter &ioxx::xyaml::operator<<(YAML::Emitter &out, node const &node) {
+YAML::Emitter &operator<<(YAML::Emitter &out, node const &node) {
   out << static_cast<YAML::Node const &>(node);
   return out;
 }

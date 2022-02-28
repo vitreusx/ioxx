@@ -12,10 +12,13 @@ namespace ioxx {
 class raw_csv_row;
 template <typename Row = raw_csv_row> class csv;
 class row_proxy;
+class csv_header;
 
 template <typename T> struct csv_connection {
   void operator()(row_proxy &proxy, T &value) const { value.connect(proxy); }
 };
+
+std::ostream &operator<<(std::ostream &os, csv_header const &header);
 
 class csv_header {
 public:
@@ -101,15 +104,20 @@ public:
   template <typename T> cell_proxy &operator&(T &value) {
     switch (mode) {
     case row_proxy_mode::LOAD:
-      return (*this >> value);
+      *this >> value;
+      break;
     case row_proxy_mode::SAVE:
-      return (*this << value);
+      *this << value;
+      break;
     }
+    return *this;
   }
 
 private:
   row_proxy_mode mode;
 };
+
+std::ostream &operator<<(std::ostream &os, row_proxy const &row);
 
 class row_proxy : public raw_csv_row {
 public:
