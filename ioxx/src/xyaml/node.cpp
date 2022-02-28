@@ -35,6 +35,7 @@ node node::new_file(const std::filesystem::path &path) {
 
 void node::save() const {
   if (loc.has_value()) {
+    std::filesystem::create_directories(loc.value().parent_path());
     auto file = std::ofstream(loc.value());
     file << *this;
   }
