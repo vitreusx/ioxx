@@ -87,10 +87,10 @@ inline constexpr bool has_custom_link = has_ext_link<T> || has_class_link<T>;
 
 class node : public YAML::Node {
 public:
-  template <typename... Args>
-  node(Args &&...args) : YAML::Node(std::forward<Args>(args)...) {}
+  using YAML::Node::Node;
 
   node(node const &other) = default;
+  explicit node(YAML::Node const &other) : YAML::Node(other) {}
   node &operator=(node const &other) = default;
 
   node(node &&other) = default;
@@ -99,13 +99,29 @@ public:
   static node import(std::filesystem::path const &path);
   static node new_file(std::filesystem::path const &path);
 
-  template <typename Key> node operator[](Key const &key) {
-    return child(this->YAML::Node::operator[](key));
+  template <typename Key> node &operator[](Key const &key) {
+    if (!children)
+      children = std::make_shared<std::unordered_map<std::string, node>>();
+
+    auto key_s = convert<std::string>(key);
+    if (children->find(key_s) == children->end()) {
+      auto yaml_res = this->YAML::Node::operator[](key);
+      children->operator[](key_s) = child(yaml_res);
+    }
+    return children->at(key_s);
   }
 
   template <typename Key> node operator[](Key const &key) const {
-    return child(this->YAML::Node::operator[](key));
+    auto key_s = convert<std::string>(key);
+    if (children && children->find(key_s) != children->end()) {
+      return children->at(key_s);
+    } else {
+      auto yaml_res = this->YAML::Node::operator[](key);
+      return child(yaml_res);
+    }
   }
+
+  void merge(node const &other);
 
   template <typename T> node const &operator>>(T &value) const;
 
@@ -132,6 +148,7 @@ public:
 
 public:
   std::optional<std::filesystem::path> loc = std::nullopt;
+  mutable std::shared_ptr<std::unordered_map<std::string, node>> children;
 };
 
 enum class proxy_mode { LOAD, SAVE };

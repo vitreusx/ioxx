@@ -19,4 +19,5 @@ template <> struct xyaml_conv<std::filesystem::path> {
   void load(node const &from, std::filesystem::path &to) const;
   void save(node &to, std::filesystem::path const &from) const;
 };
+
 } // namespace ioxx::xyaml

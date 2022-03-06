@@ -58,3 +58,16 @@ node node::child(const YAML::Node &node) const {
 proxy proxy::child(const YAML::Node &node) const {
   return proxy(this->node::child(node), mode);
 }
+
+void node::merge(const node &other) {
+  if (other.IsScalar() || !IsMap()) {
+    *this = other;
+  } else {
+    for (auto entry : other) {
+      if (entry.first.IsScalar()) {
+        auto key = entry.first.Scalar();
+        static_cast<node &>(*this)[key].merge(other[key]);
+      }
+    }
+  }
+}

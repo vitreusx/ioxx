@@ -9,7 +9,7 @@ void xyaml_conv<file>::load(const node &from, file &to) const {
     to.rel_path = to.abs_path = std::nullopt;
   } else if (from["__path"]) {
     to.rel_path = from["__path"].as<std::string>();
-    to.abs_path = from.abs_path(to.rel_path.value());
+    to.abs_path = from["__path"].abs_path(to.rel_path.value());
   } else {
     throw std::runtime_error("invalid schema");
   }
