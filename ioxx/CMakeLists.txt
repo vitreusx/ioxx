@@ -1,4 +1,4 @@
-add_library(ioxx SHARED)
+add_library(ioxx)
 
 file(GLOB_RECURSE PrivateSources CONFIGURE_DEPENDS
     src/*.cpp src/*.hpp src/*.h src/*.inl)
