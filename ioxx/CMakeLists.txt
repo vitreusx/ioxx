@@ -28,6 +28,9 @@ target_compile_options(ioxx
     $<$<CONFIG:Release>:$<$<COMPILE_LANGUAGE:CXX>:-Ofast;-march=native>>
     $<$<COMPILE_LANGUAGE:CXX>:-Wall;-Wextra;-Wpedantic>)
 
-add_subdirectory(ext/yaml-cpp-0.7.0)
-target_link_libraries(ioxx
-    PUBLIC yaml-cpp)
+find_package(yaml-cpp)
+if (NOT ${YAML_CPP_FOUND})
+    add_subdirectory(ext/yaml-cpp-0.7.0)
+endif()
+
+target_link_libraries(ioxx PUBLIC yaml-cpp)
