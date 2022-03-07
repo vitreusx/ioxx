@@ -29,7 +29,5 @@ target_compile_options(ioxx
     $<$<COMPILE_LANGUAGE:CXX>:-Wall;-Wextra;-Wpedantic>)
 
 add_subdirectory(ext/yaml-cpp-0.7.0)
-find_package(yaml-cpp REQUIRED SHARED)
-
 target_link_libraries(ioxx
     PUBLIC yaml-cpp)
