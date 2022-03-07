@@ -28,7 +28,7 @@ target_compile_options(ioxx
     $<$<CONFIG:Release>:$<$<COMPILE_LANGUAGE:CXX>:-Ofast;-march=native>>
     $<$<COMPILE_LANGUAGE:CXX>:-Wall;-Wextra;-Wpedantic>)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/ext/yaml-cpp-0.7.0")
+add_subdirectory(ext/yaml-cpp-0.7.0)
 find_package(yaml-cpp REQUIRED SHARED)
 
 target_link_libraries(ioxx
