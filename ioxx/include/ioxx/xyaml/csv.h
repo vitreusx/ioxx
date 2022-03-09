@@ -3,7 +3,7 @@
 #include "file.h"
 
 namespace ioxx::xyaml {
-template <typename Row> class csv {
+template <typename Row = raw_csv_row> class csv {
 public:
   std::optional<std::filesystem::path> path;
   ioxx::csv<Row> data;

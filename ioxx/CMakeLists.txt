@@ -28,8 +28,8 @@ target_compile_options(ioxx
     $<$<CONFIG:Release>:$<$<COMPILE_LANGUAGE:CXX>:-Ofast;-march=native>>
     $<$<COMPILE_LANGUAGE:CXX>:-Wall;-Wextra;-Wpedantic>)
 
-find_package(yaml-cpp)
-if (NOT ${YAML_CPP_FOUND})
+find_package(yaml-cpp QUIET)
+if (NOT ${yaml-cpp_FOUND})
     add_subdirectory(ext/yaml-cpp-0.7.0)
 endif()
 

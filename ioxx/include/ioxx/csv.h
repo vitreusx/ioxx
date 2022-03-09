@@ -54,6 +54,10 @@ public:
     return *this;
   }
 
+  template <typename T> raw_csv_cell& operator<<(T const& value) {
+    return (*this = value);
+  }
+
   raw_csv_cell(raw_csv_cell &&other) noexcept = default;
   raw_csv_cell &operator=(raw_csv_cell &&other) noexcept;
 
