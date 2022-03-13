@@ -146,6 +146,9 @@ public:
 
   node child(YAML::Node const &node) const;
 
+  node clone() const;
+  YAML::Node flatten() const;
+
 public:
   std::optional<std::filesystem::path> loc = std::nullopt;
   mutable std::shared_ptr<std::unordered_map<std::string, node>> children;

@@ -7,9 +7,9 @@ void xyaml_conv<file>::load(const node &from, file &to) const {
   if (from.IsScalar()) {
     to.source = from.as<std::string>();
     to.rel_path = to.abs_path = std::nullopt;
-  } else if (from["__path"]) {
-    to.rel_path = from["__path"].as<std::string>();
-    to.abs_path = from["__path"].abs_path(to.rel_path.value());
+  } else if (from["(at path)"]) {
+    to.rel_path = from["(at path)"].as<std::string>();
+    to.abs_path = from["(at path)"].abs_path(to.rel_path.value());
   } else {
     throw std::runtime_error("invalid schema");
   }
@@ -17,7 +17,7 @@ void xyaml_conv<file>::load(const node &from, file &to) const {
 
 void xyaml_conv<file>::save(node &to, const file &from) const {
   if (from.rel_path.has_value()) {
-    to["__path"] = from.rel_path.value().string();
+    to["(at path)"] = from.rel_path.value().string();
     auto path = to.abs_path(from.rel_path.value());
 
     if (from.source.has_value()) {
