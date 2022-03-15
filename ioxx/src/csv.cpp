@@ -2,7 +2,10 @@
 #include "read_csv_row.h"
 using namespace ioxx;
 
-csv_header::csv_header(std::initializer_list<std::string> col_names) {
+csv_header::csv_header(std::initializer_list<std::string> col_names):
+  csv_header(std::vector<std::string>(col_names)) {}
+
+csv_header::csv_header(const std::vector<std::string> &col_names) {
   size_t col_idx = 0;
   for (auto const &col_name : col_names)
     insert(col_idx++, col_name);

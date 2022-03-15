@@ -25,6 +25,7 @@ public:
   csv_header() = default;
   explicit csv_header(row_proxy const &proxy);
   csv_header(std::initializer_list<std::string> col_names);
+  explicit csv_header(std::vector<std::string> const& col_names);
 
   void insert(size_t idx, std::string const &name);
 
@@ -151,6 +152,11 @@ public:
 
   explicit csv(std::istream &file, bool load_header = true) {
     load(file, load_header);
+  }
+
+  template<typename U = Row, typename std::enable_if_t<std::is_same_v<U, raw_csv_row>, int> = 0>
+  raw_csv_row& emplace_back() {
+    return rows.emplace_back(&header.value());
   }
 
   std::string save(bool save_header = true) const {
