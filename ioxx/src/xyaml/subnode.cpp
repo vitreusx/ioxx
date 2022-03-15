@@ -3,8 +3,8 @@
 using namespace ioxx::xyaml;
 
 void xyaml_conv<subnode>::load(const node &from, subnode &to) const {
-  if (from["__path"]) {
-    auto rel_path = from["__path"].as<std::string>();
+  if (from["(at path)"]) {
+    auto rel_path = from["(at path)"].as<std::string>();
     auto abs_path = from.abs_path(rel_path);
     to = node::import(abs_path);
   } else {
@@ -15,7 +15,7 @@ void xyaml_conv<subnode>::load(const node &from, subnode &to) const {
 void xyaml_conv<subnode>::save(node &to, const subnode &from) const {
   if (to.loc != from.loc && from.loc.has_value()) {
     auto rel_path = to.rel_path(from.loc.value());
-    to["__path"] = rel_path.string();
+    to["(at path)"] = rel_path.string();
 
     std::ofstream subnode_file(from.loc.value());
     subnode_file << from;
