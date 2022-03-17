@@ -35,4 +35,4 @@ template <typename V> struct convert_impl<V, std::string> {
 template <typename V, typename U> V convert(U const &x) {
   return convert_impl<V, U>()(x);
 }
-}; // namespace ioxx
+} // namespace ioxx

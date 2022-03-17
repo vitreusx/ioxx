@@ -24,7 +24,7 @@ void xyaml_conv<subnode>::save(node &to, const subnode &from) const {
   }
 }
 
-subnode::subnode(const node &base) : node(base){};
+subnode::subnode(const node &base) : node(base){}
 
 subnode &subnode::operator=(const node &base) {
   this->node::operator=(base);

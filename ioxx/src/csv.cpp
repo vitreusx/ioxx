@@ -48,7 +48,7 @@ std::vector<std::string> const &csv_header::col_names() const {
 }
 
 cell_proxy::cell_proxy(raw_csv_cell const &base, row_proxy_mode mode)
-    : raw_csv_cell{base}, mode{mode} {};
+    : raw_csv_cell{base}, mode{mode} {}
 
 std::ostream &ioxx::operator<<(std::ostream &os, row_proxy const &row) {
   for (size_t idx = 0; idx < row.values.size(); ++idx) {
@@ -120,7 +120,7 @@ std::string const &raw_csv_cell::to_const_ref() const {
 }
 
 row_proxy::row_proxy(const raw_csv_row &data, row_proxy_mode mode)
-    : raw_csv_row(data), mode{mode} {};
+    : raw_csv_row(data), mode{mode} {}
 
 cell_proxy row_proxy::operator[](size_t idx) {
   return cell_proxy(this->raw_csv_row::operator[](idx), mode);
